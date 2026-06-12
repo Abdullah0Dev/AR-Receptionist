@@ -9,7 +9,6 @@ import { GeminiService } from "./services/gemini.service"; // Import the service
 import { CONFIG, WARM_POOL_SIZE } from "./config/constants";
 import { startNgrok } from "./utils";
 import mongoose from "mongoose";
-import { BusinessController } from "./controllers/business.controller";
 import { PromptService } from "./services/prompt.service";
 
 const app = express();
@@ -28,12 +27,6 @@ app.use(errorHandler);
 
 async function start() {
   const ngrokUrl = await startNgrok(CONFIG.PORT);
-  // Load your one business upfront
-  // const business = await BusinessController.getByPhoneNumber(
-  //   CONFIG.BUSINESS_PHONE,
-  // );
-  // console.log("twilio biz num:", business);
-  
   const systemPrompt = PromptService.generateForBusiness("", ""); // no callerNumber needed
 
   await GeminiService.initPool(systemPrompt, 2); // blocks until both sessions are warm

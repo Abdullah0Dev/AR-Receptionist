@@ -39,6 +39,7 @@ export async function handleTwilioMessage(
         callerNumber,
         leadId,
       );
+
       break;
     }
 
@@ -85,7 +86,7 @@ export async function createGeminiSession(
     sessionManager.delete(streamSid);
   };
 
-  const sessionData = {
+  sessionManager.set(streamSid, {
     geminiSession: pooled.session,
     streamSid,
     callSid,
@@ -97,35 +98,10 @@ export async function createGeminiSession(
     isUserSpeaking: false,
     audioProcessor: new StreamAudioProcessor(),
     transcripts: [],
-    silenceTimer: null as NodeJS.Timeout | null,
-  };
-  sessionManager.set(streamSid, sessionData);
+    silenceTimer: null,
+  });
 
-  if (pooled.greeting.ready && pooled.greeting.chunks.length > 0) {
-    // ⚡ Instant — play pre-generated greeting
-    console.log("⚡ Streaming pre-buffered greeting");
-    sessionData.isAISpeaking = true;
-    for (const chunk of pooled.greeting.chunks) {
-      const mulaw = sessionData.audioProcessor.pcmToMulaw(
-        chunk.data,
-        chunk.mimeType,
-      );
-      TwilioService.sendMedia(twilioWs, streamSid, mulaw);
-    }
-    sessionData.isAISpeaking = false;
-    if (pooled.greeting.transcript) {
-      sessionData.transcripts.push({
-        role: "agent",
-        message: pooled.greeting.transcript,
-      });
-      console.log("🤖 AI (buffered):", pooled.greeting.transcript);
-    }
-  } else {
-    // Cold fallback — pool was empty or greeting not ready yet
-    console.warn("⚠️ Greeting not ready, triggering live");
-    GeminiService.triggerAIFirstMessage(pooled.session, "Hello");
-  }
-
+  GeminiService.triggerAIFirstMessage(pooled.session, "Hello");
   setInterval(() => flushAudioBuffer(streamSid), AUDIO_FLUSH_INTERVAL);
 }
 

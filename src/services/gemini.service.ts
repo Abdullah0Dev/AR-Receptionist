@@ -7,15 +7,10 @@ export interface PooledSession {
   session: any;
   callbacks: {
     onmessage: (msg: any) => void;
-    onerror: (e: Error) => void;
+    onerror: (e: unknown) => void;
     onclose: () => void;
   };
   keepAliveInterval: ReturnType<typeof setInterval> | null;
-  greeting: {
-    chunks: { data: string; mimeType: string }[];
-    transcript: string;
-    ready: boolean;
-  };
 }
 
 const pool: PooledSession[] = [];
@@ -45,10 +40,7 @@ async function createPooledSession(): Promise<PooledSession> {
     callbacks: {
       onopen: () => {},
       onmessage: (msg) => callbacks.onmessage(msg),
-      onerror: (e: Error | ErrorEvent) =>
-        callbacks.onerror(
-          e instanceof Error ? e : new Error(e.message || "Unknown error"),
-        ),
+      onerror: (e) => callbacks.onerror(e),
       onclose: () => {
         // Only matters if this session is still sitting in the pool
         const idx = pool.indexOf(pooled);
@@ -62,47 +54,16 @@ async function createPooledSession(): Promise<PooledSession> {
     },
   });
 
-  pooled = {
-    session,
-    callbacks,
-    keepAliveInterval: null,
-    greeting: { chunks: [], transcript: "", ready: false },
-  };
+  pooled = { session, callbacks, keepAliveInterval: null };
 
-  // Keep-alive interval
+  // Keep idle sessions alive with silence pings
   pooled.keepAliveInterval = setInterval(() => {
     try {
       session.sendRealtimeInput({
-        audio: {
-          data: Buffer.alloc(320).toString("base64"),
-          mimeType: "audio/pcm;rate=16000",
-        },
+        audio: { data: Buffer.alloc(320).toString("base64"), mimeType: "audio/pcm;rate=16000" },
       });
     } catch (_) {}
   }, 8_000);
-
-  // ⚡ Pre-generate greeting while session is warm
-  callbacks.onmessage = (msg: any) => {
-    const parts = msg.serverContent?.modelTurn?.parts ?? [];
-    for (const part of parts) {
-      if (part.inlineData?.data && part.inlineData?.mimeType) {
-        pooled.greeting.chunks.push({
-          data: part.inlineData.data,
-          mimeType: part.inlineData.mimeType,
-        });
-      }
-    }
-    const transcript = msg.serverContent?.outputTranscription?.text;
-    if (transcript) pooled.greeting.transcript += transcript;
-
-    if (msg.serverContent?.turnComplete) {
-      pooled.greeting.ready = true;
-      callbacks.onmessage = () => {}; // idle until real call wires up
-      console.log("⚡ Greeting buffered:", pooled.greeting.transcript);
-    }
-  };
-
-  session.sendRealtimeInput({ text: "Hello" }); // fire and collect
 
   return pooled;
 }
@@ -126,7 +87,7 @@ export class GeminiService {
       Array.from({ length: size }, async () => {
         const p = await createPooledSession();
         pool.push(p);
-      }),
+      })
     );
 
     const ok = results.filter((r) => r.status === "fulfilled").length;
