@@ -1,17 +1,83 @@
 import "dotenv/config";
 import { TwilioService } from "./services/twilio.service";
 import { CONFIG } from "./config";
+import { GoogleGenAI, Modality} from "@google/genai";
+
+export const geminiClient = new GoogleGenAI({ apiKey: CONFIG.GEMINI_API_KEY });
 
 async function run() {
-  await TwilioService.sendSMS(
-    `Hi Rohan, your __ booking at our ___ branch has been received. We'll call you shortly to confirm collection. – Gold Star Dry Cleaners
-    
-    mate, this is just a test to see if it's working`,
-    // booking.phone,
-    "+447305766194",
-    CONFIG.TWILIO_PHONE_NUMBER, // send sms from number:
-  );
-  console.log("send SMS: ");
+  const response = await geminiClient.models.generateContent({
+    model: "gemini-3-flash-preview",
+    contents: `say hi`,
+  });
+  // console.log("api key: ", CONFIG.GEMINI_API_KEY);
+
+  const raw = response.text ?? "";
+  console.log("raw: ", raw);
+  
+  return raw
+  const models = await geminiClient.models.list();
+  for await (const model of models) {
+    console.log(model.name);
+  }
 }
 
 run();
+
+/**
+ models/gemini-2.5-flash
+models/gemini-2.5-pro
+models/gemini-2.0-flash
+models/gemini-2.0-flash-001
+models/gemini-2.0-flash-lite-001
+models/gemini-2.0-flash-lite
+models/gemini-2.5-flash-preview-tts
+models/gemini-2.5-pro-preview-tts
+models/gemma-4-26b-a4b-it
+models/gemma-4-31b-it
+models/gemini-flash-latest
+models/gemini-flash-lite-latest
+models/gemini-pro-latest
+models/gemini-2.5-flash-lite
+models/gemini-2.5-flash-image
+models/gemini-3-pro-preview
+models/gemini-3-flash-preview
+models/gemini-3.1-pro-preview
+models/gemini-3.1-pro-preview-customtools
+models/gemini-3.1-flash-lite-preview
+models/gemini-3.1-flash-lite
+models/gemini-3-pro-image-preview
+models/gemini-3-pro-image
+models/nano-banana-pro-preview
+models/gemini-3.1-flash-image-preview
+models/gemini-3.1-flash-image
+models/gemini-3.5-flash
+models/lyria-3-clip-preview
+models/lyria-3-pro-preview
+models/gemini-3.1-flash-tts-preview
+models/gemini-robotics-er-1.5-preview
+models/gemini-robotics-er-1.6-preview
+models/gemini-2.5-computer-use-preview-10-2025
+models/antigravity-preview-05-2026
+models/deep-research-max-preview-04-2026
+models/deep-research-preview-04-2026
+models/deep-research-pro-preview-12-2025
+models/gemini-embedding-001
+models/gemini-embedding-2-preview
+models/gemini-embedding-2
+models/aqa
+models/imagen-4.0-generate-001
+models/imagen-4.0-ultra-generate-001
+models/imagen-4.0-fast-generate-001
+models/veo-2.0-generate-001
+models/veo-3.0-generate-001
+models/veo-3.0-fast-generate-001
+models/veo-3.1-generate-preview
+models/veo-3.1-fast-generate-preview
+models/veo-3.1-lite-generate-preview
+models/gemini-2.5-flash-native-audio-latest
+models/gemini-2.5-flash-native-audio-preview-09-2025
+models/gemini-2.5-flash-native-audio-preview-12-2025
+models/gemini-3.1-flash-live-preview
+models/gemini-3.5-live-translate-preview
+ */

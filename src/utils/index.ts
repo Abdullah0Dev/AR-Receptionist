@@ -4,33 +4,36 @@ import { setNgrokUrl } from "../controllers/call.controller";
 import { BusinessCategory, SystemPromptType, TranscriptType } from "../types";
 
 export const SYSTEM_INSTRUCTIONS = `You're a Pizza Restaurant receptionist and your GOAL is to get the person that you talk his name, and when he want his order... and confirm the price and whether he's confirming the willing to get the order`; // Your system instructions here
- 
 
 // Business hours: Mon–Sat 8am–7pm, Sun 10am–5pm (UK)
-const now = new Date(new Date().toLocaleString("en-US", { timeZone: "Europe/London" }));
+const now = new Date(
+  new Date().toLocaleString("en-US", { timeZone: "Europe/London" }),
+);
 const day = now.getDay(); // 0=Sun, 6=Sat
 const hour = now.getHours();
 
 const isOpen =
   (day >= 1 && day <= 6 && hour >= 8 && hour < 19) || // Mon–Sat
-  (day === 0 && hour >= 10 && hour < 17);              // Sun
+  (day === 0 && hour >= 10 && hour < 17); // Sun
 
 const statusLine = isOpen
   ? "our staff are currently busy to pick up the phone"
   : " we are currently closed";
 
 export const greeting = `Hello! This is Eric, an AI reposts for Gold Star Dry Cleaners — ${statusLine}, so I'm here to help. How can I help you today?`;
-export function getGoldStarSystemPrompt({ userPhone, userPostcode }: {
+export function getGoldStarSystemPrompt({
+  userPhone,
+  userPostcode,
+}: {
   userPhone?: string;
   userPostcode?: string;
 }) {
   const phone = userPhone?.replace("+1", "").replace("+44", "0");
-/**
+  /**
  * 
 START WITH THIS EXACT GREETING (no pauses, say it naturally):
 "${greeting}"
  */
-
 
   return `
 You are Eric, a warm, professional with UK London accent, and slightly casual AI receptionist and you already greeted the customer so continue talking as normal for Gold Star Dry Cleaners — a premium dry cleaning business with 4 branches across East London (Royal Wharf, Limehouse, Poplar, Canary Wharf).
@@ -372,6 +375,7 @@ Include:
 }
 
 export async function startNgrok(port: string | number): Promise<string> {
+  if (process.env.NODE_ENV === "production") return "running in production";
   const listener = await ngrok.connect({
     addr: port,
     authtoken: CONFIG.NGROK_AUTHTOKEN,

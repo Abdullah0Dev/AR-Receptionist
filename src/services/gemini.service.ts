@@ -1,4 +1,4 @@
-import { GoogleGenAI, Modality } from "@google/genai";
+import { GoogleGenAI, Modality} from "@google/genai";
 import { CONFIG, MODEL } from "../config";
 import { StreamAudioProcessor } from "./audio.service";
 
