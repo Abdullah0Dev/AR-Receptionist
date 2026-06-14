@@ -368,7 +368,7 @@ Include:
 - Roof age (if known)
 - Any storm damage visible
 `,
-  };
+  }; 
 
   // Return category-specific prompt or default to plumber
   return categorySpecificPrompts[category] || categorySpecificPrompts.plumber;
