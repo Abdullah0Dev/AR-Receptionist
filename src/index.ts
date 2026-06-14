@@ -7,7 +7,7 @@ import { setupWebSocket } from "./websocket/handlers";
 import { errorHandler } from "./middleware/error.middleware";
 import { GeminiService } from "./services/gemini.service"; // Import the service
 import { CONFIG, WARM_POOL_SIZE } from "./config/constants";
-import { startNgrok } from "./utils";
+import { greeting, startNgrok } from "./utils";
 import mongoose from "mongoose";
 import { PromptService } from "./services/prompt.service";
 
@@ -29,8 +29,8 @@ async function start() {
   const ngrokUrl = await startNgrok(CONFIG.PORT);
   const systemPrompt = PromptService.generateForBusiness("", ""); // no callerNumber needed
 
+  await GeminiService.generateGreeting(greeting);
   await GeminiService.initPool(systemPrompt, 2); // blocks until both sessions are warm
-
   await mongoose
     .connect(CONFIG.MONGODB_URL)
     .then(() => {

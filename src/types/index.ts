@@ -2,6 +2,7 @@ import { WebSocket } from "ws";
 import { LiveServerMessage } from "@google/genai";
 import { AudioBuffer } from "../utils/audio-buffer.utils";
 import { StreamAudioProcessor } from "../services/audio.service";
+import { PooledSession } from "../services/gemini.service";
 
 export interface GeminiSessionData {
   geminiSession: any;
@@ -21,6 +22,7 @@ export interface GeminiSessionData {
   silenceTimer?: NodeJS.Timeout;
   hangupTimer?: NodeJS.Timeout;
   transcripts: TranscriptType[];
+  callbacksRef: PooledSession["callbacks"]; // 👈 add this
 }
 
 export interface TwilioMessage {

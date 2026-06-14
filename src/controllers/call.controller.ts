@@ -68,7 +68,7 @@ export class CallController {
     // twiml.say("Please hold while I connect you.");
     // twiml.pause({ length: 1 });
     // Before the connect block:
-    twiml.pause({ length: 1 });
+    // twiml.pause({ length: 1 });
     // We'll pass this via custom parameters
     const connect = twiml.connect();
     const stream = connect.stream({

@@ -7,6 +7,7 @@ import BookingNotificationEmail, {
 } from "../emails/booking-notification";
 import { TwilioService } from "./twilio.service";
 import BookingConfirmationEmail from "../emails/booking-confirmation";
+import { CONFIG } from "../config";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -37,7 +38,7 @@ Example output:
   "phone": "07700 900123",
   "email": "john@gmail.com",
   "address": "E14",
-  "branch": "Canary Wharf",
+  "branch": "Canary Wharf", 
   "notes": null
 }`;
 
@@ -49,13 +50,13 @@ async function sendConfirmationToCustomer(
     `Hi ${booking.customer}, your ${booking.service} booking at our ${booking.branch} branch has been received. We'll call you shortly to confirm collection. – Gold Star Dry Cleaners`,
     // booking.phone,
     booking.phone,
-    "+17753678856", // send sms from number:
+    CONFIG.TWILIO_PHONE_NUMBER, // send sms from number:
   );
   await TwilioService.sendWhatsappMessage(
     `Hi ${booking.customer}, your ${booking.service} booking at our ${booking.branch} branch has been received. We'll call you shortly to confirm collection. – Gold Star Dry Cleaners`,
-    // booking.phone,
-    "+447856239875",
-    // "+17753678856", // send sms from number:
+    booking.phone,
+    // "+447856239875",
+    // "+447782229655", // send sms from number:
   );
   console.info("Send SMS to: ", booking.phone);
 

@@ -6,12 +6,14 @@ export const twilioClient = twilio(
   CONFIG.TWILIO_ACCOUNT_SID,
   CONFIG.TWILIO_AUTH_TOKEN,
 );
+// console.log(  CONFIG.TWILIO_ACCOUNT_SID,
+//   CONFIG.TWILIO_AUTH_TOKEN,);
 
 export class TwilioService {
   static async sendSMS(text: string, to: string, from?: string) {
     const message = await twilioClient.messages.create({
       body: text,
-      from: from ?? "+17753678856",
+      from: from ?? "+447782229655",
       to: to,
     });
     return message;
@@ -20,7 +22,7 @@ export class TwilioService {
     const whatsappTo = to ? `whatsapp:${to}` : "whatsapp:+447856239875";
     const message = await twilioClient.messages.create({
       body: text,
-      from: from ?? "whatsapp:+14155238886",
+      from: from ?? "whatsapp:+447782229655",
       to: whatsappTo,
     });
     return message;

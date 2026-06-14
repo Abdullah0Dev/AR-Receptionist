@@ -1,10 +1,10 @@
 import { WebSocket } from "ws";
 import { SessionManager } from "../models/session.model";
-import { GeminiService } from "../services/gemini.service";
+import { GeminiService, GREETING_AUDIO } from "../services/gemini.service";
 import { AudioService, StreamAudioProcessor } from "../services/audio.service";
 import { TwilioService } from "../services/twilio.service";
 import { AudioBuffer } from "../utils/audio-buffer.utils";
-import { TwilioMessage } from "../types";
+import { GeminiSessionData, TwilioMessage } from "../types";
 import { AUDIO_FLUSH_INTERVAL, SILENCE_TIMEOUT } from "../config";
 import { LeadController } from "../controllers/lead.controller";
 import { sendBookingNotification } from "../services/notification.service";
@@ -53,18 +53,75 @@ export async function handleTwilioMessage(
       if (!msg.streamSid) break;
       console.log("🛑 Call ended:", msg.streamSid);
       const session = sessionManager.get(msg.streamSid);
-
       if (session) {
-        session.geminiSession?.close();
-        handleCallEnd(session).catch(console.error); // fire and forget
+        await captureDetailsAndEnd(session); // handles close + notification inside
       }
-
       sessionManager.delete(msg.streamSid);
       break;
     }
   }
 }
+// Add this helper
+function streamGreetingAudio(ws: WebSocket, streamSid: string): number {
+  if (!GREETING_AUDIO) return 0;
 
+  // 160 bytes = 20ms of mulaw at 8kHz — matches Twilio's expected cadence
+  const CHUNK_SIZE = 160;
+  let offset = 0;
+
+  const interval = setInterval(() => {
+    const session = sessionManager.get(streamSid);
+    if (!session || offset >= GREETING_AUDIO!.length) {
+      clearInterval(interval);
+      return;
+    }
+    const chunk = GREETING_AUDIO!.subarray(offset, offset + CHUNK_SIZE);
+    offset += CHUNK_SIZE;
+    TwilioService.sendMedia(ws, streamSid, chunk.toString("base64"));
+  }, 20);
+
+  // Return duration in ms so we can track when it's done
+  return Math.ceil(GREETING_AUDIO.length / CHUNK_SIZE) * 20;
+}
+async function captureDetailsAndEnd(session: GeminiSessionData): Promise<void> {
+  await new Promise<void>((resolve) => {
+    // Safety timeout — if Gemini doesn't respond in 15s, close anyway
+    const timeout = setTimeout(() => {
+      console.warn("⚠️ Detail recap timed out, closing session");
+      session.geminiSession.close();
+      handleCallEnd(session).catch(console.error);
+      resolve();
+    }, 15_000);
+
+    // Redirect Gemini messages to capture the recap transcription
+    session.callbacksRef.onmessage = (msg: any) => {
+      const aiText = msg.serverContent?.outputTranscription?.text;
+      if (aiText) {
+        session.transcripts.push({ role: "agent", message: aiText });
+        console.log("📋 Recap:", aiText);
+      }
+
+      if (msg.serverContent?.turnComplete) {
+        clearTimeout(timeout);
+        session.geminiSession.close();
+        handleCallEnd(session).catch(console.error);
+        resolve();
+      }
+    };
+
+    // Ask Gemini to read back everything it captured
+    session.geminiSession.sendRealtimeInput({
+      text: `The customer has ended the call. Please clearly read back all the booking details you captured:
+        - Customer name
+        - Service requested
+        - Deadline or collection date
+        - Email
+        - Address or postcode
+        - Branch
+        Read each field clearly, one by one. Do not add anything else.`,
+    });
+  });
+}
 export async function createGeminiSession(
   streamSid: string,
   callSid: string,
@@ -88,6 +145,7 @@ export async function createGeminiSession(
 
   sessionManager.set(streamSid, {
     geminiSession: pooled.session,
+    callbacksRef: pooled.callbacks,
     streamSid,
     callSid,
     businessId,
@@ -101,7 +159,17 @@ export async function createGeminiSession(
     silenceTimer: null,
   });
 
-  GeminiService.triggerAIFirstMessage(pooled.session, "Hello");
+  // ⚡ Stream pre-recorded greeting instantly — 0ms delay for caller
+  const greetingDurationMs = streamGreetingAudio(twilioWs, streamSid);
+  console.log(
+    `🎙 Streaming greeting (${greetingDurationMs}ms) while Gemini listens...`,
+  );
+
+  // Tell Gemini the greeting was already said — it just needs to listen
+  // GeminiService.triggerAIFirstMessage(
+  //   pooled.session,
+  //   "The welcome greeting has already been played to the customer. Listen for their response and reply naturally.",
+  // );
   setInterval(() => flushAudioBuffer(streamSid), AUDIO_FLUSH_INTERVAL);
 }
 

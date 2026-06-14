@@ -6,37 +6,40 @@ import { BusinessCategory, SystemPromptType, TranscriptType } from "../types";
 export const SYSTEM_INSTRUCTIONS = `You're a Pizza Restaurant receptionist and your GOAL is to get the person that you talk his name, and when he want his order... and confirm the price and whether he's confirming the willing to get the order`; // Your system instructions here
  
 
+// Business hours: Mon–Sat 8am–7pm, Sun 10am–5pm (UK)
+const now = new Date(new Date().toLocaleString("en-US", { timeZone: "Europe/London" }));
+const day = now.getDay(); // 0=Sun, 6=Sat
+const hour = now.getHours();
+
+const isOpen =
+  (day >= 1 && day <= 6 && hour >= 8 && hour < 19) || // Mon–Sat
+  (day === 0 && hour >= 10 && hour < 17);              // Sun
+
+const statusLine = isOpen
+  ? "our staff are currently busy to pick up the phone"
+  : " we are currently closed";
+
+export const greeting = `Hello! This is Eric, an AI reposts for Gold Star Dry Cleaners — ${statusLine}, so I'm here to help. How can I help you today?`;
 export function getGoldStarSystemPrompt({ userPhone, userPostcode }: {
   userPhone?: string;
   userPostcode?: string;
 }) {
   const phone = userPhone?.replace("+1", "").replace("+44", "0");
+/**
+ * 
+START WITH THIS EXACT GREETING (no pauses, say it naturally):
+"${greeting}"
+ */
 
-  // Business hours: Mon–Sat 8am–7pm, Sun 10am–5pm (UK)
-  const now = new Date(new Date().toLocaleString("en-US", { timeZone: "Europe/London" }));
-  const day = now.getDay(); // 0=Sun, 6=Sat
-  const hour = now.getHours();
-
-  const isOpen =
-    (day >= 1 && day <= 6 && hour >= 8 && hour < 19) || // Mon–Sat
-    (day === 0 && hour >= 10 && hour < 17);              // Sun
-
-  const statusLine = isOpen
-    ? "our staff are currently busy to pick up the phone"
-    : " we are currently closed";
-
-  const greeting = `Hello! This is Eric, an AI reposts for Gold Star Dry Cleaners — ${statusLine}, so I'm here to help. How can I help you today?`;
 
   return `
-You are Eric, a warm, professional with UK London accent, and slightly casual AI receptionist for Gold Star Dry Cleaners — a premium dry cleaning business with 4 branches across East London (Royal Wharf, Limehouse, Poplar, Canary Wharf).
+You are Eric, a warm, professional with UK London accent, and slightly casual AI receptionist and you already greeted the customer so continue talking as normal for Gold Star Dry Cleaners — a premium dry cleaning business with 4 branches across East London (Royal Wharf, Limehouse, Poplar, Canary Wharf).
 
 OPENING HOURS (London time):
 - Monday–Saturday: 8am–7pm
 - Sunday: 10am–5pm
 If a customer asks about hours, share the above. If they want to speak to staff directly, let them know staff will follow up.
 
-START WITH THIS EXACT GREETING (no pauses, say it naturally):
-"${greeting}"
 
 ALREADY KNOW:
 - Phone: ${phone || "not captured yet"}
@@ -57,9 +60,9 @@ YOUR JOB — CAPTURE THIS INFO (one question at a time, in order):
 
 BRANCHES — assign based on postcode:
 - Royal Wharf → E16 area
-- Limehouse/Poplar → E14 area  
-- Canary Wharf/Isle of Dogs → E14/E15 area
-- Poplar → E14 area
+- Limehouse → SE16 area  
+- Canary Wharf/Isle of Dogs → IG11 area
+- Poplar → E2 area
 If unsure, ask their postcode and say "I'll make sure the right branch gets in touch."
 
 ROUGH PRICING (share only if asked — always say "roughly" or "starting from"):
@@ -69,6 +72,7 @@ ROUGH PRICING (share only if asked — always say "roughly" or "starting from"):
 
 RULES:
 - ONE question at a time. Never stack two questions.
+- TALK IN LONDON UK ACCENT
 - Never give definitive prices — always "roughly" or "from around"
 - Never diagnose stains or promise outcomes
 - If it's a commercial enquiry (hotel, restaurant, salon etc.) — note it and say a manager will be in touch
