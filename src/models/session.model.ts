@@ -1,8 +1,7 @@
 import { WebSocket } from "ws";
 import { LiveServerMessage } from "@google/genai";
 import { AudioBuffer } from "../utils/audio-buffer.utils";
-import { GeminiSessionData } from "../types";
-import { StreamAudioProcessor } from "../services/audio.service";
+import { GeminiSessionData } from "../types"; 
 
 export class SessionManager {
   private static instance: SessionManager;

@@ -6,9 +6,8 @@ import { setupRoutes } from "./routes";
 import { setupWebSocket } from "./websocket/handlers";
 import { errorHandler } from "./middleware/error.middleware";
 import { GeminiService } from "./services/gemini.service"; // Import the service
-import { CONFIG, WARM_POOL_SIZE } from "./config/constants";
+import { CONFIG } from "./config/constants";
 import { greeting, startNgrok } from "./utils";
-import mongoose from "mongoose";
 import { PromptService } from "./services/prompt.service";
 
 const app = express();
@@ -31,18 +30,9 @@ async function start() {
 
   await GeminiService.generateGreeting(greeting);
   await GeminiService.initPool(systemPrompt, 2); // blocks until both sessions are warm
-  await mongoose
-    .connect(CONFIG.MONGODB_URL)
-    .then(() => {
-      server.listen(CONFIG.PORT, () => {
-        console.log("🚀 Server Connected & Started:", ngrokUrl);
-      });
-    })
-    .catch((err) => {
-      server.listen(CONFIG.PORT, () => {
-        console.log("🚀 Error Connecting Server:", err);
-      });
-    });
+  server.listen(CONFIG.PORT, () => {
+    console.log("🚀 Server Connected & Started:", ngrokUrl);
+  });
 
   // // Warm up Gemini sessions - using the service method
   // for (let i = 0; i < WARM_POOL_SIZE; i++) {

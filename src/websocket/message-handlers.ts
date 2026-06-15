@@ -6,7 +6,6 @@ import { TwilioService } from "../services/twilio.service";
 import { AudioBuffer } from "../utils/audio-buffer.utils";
 import { GeminiSessionData, TwilioMessage } from "../types";
 import { AUDIO_FLUSH_INTERVAL, SILENCE_TIMEOUT } from "../config";
-import { LeadController } from "../controllers/lead.controller";
 import { sendBookingNotification } from "../services/notification.service";
 import { processTranscriptsFormatting } from "../utils";
 
@@ -25,10 +24,6 @@ export async function handleTwilioMessage(
       if (!msg.start) break;
       const { streamSid, callSid } = msg.start;
       const { businessId, callerNumber } = msg.start.customParameters || {};
-
-      // LeadController.updateLead(leadId, { status: "answered" }).catch(
-      //   console.error,
-      // );
 
       await createGeminiSession(
         streamSid,
@@ -154,6 +149,7 @@ export async function createGeminiSession(
     audioProcessor: new StreamAudioProcessor(),
     transcripts: [],
     silenceTimer: null,
+    callEndHandled: false, // ← add this
   });
 
   // ⚡ Stream pre-recorded greeting instantly — 0ms delay for caller
@@ -259,10 +255,4 @@ async function handleCallEnd(session: any) {
   );
   // callerNumber lives on session — no DB fetch needed
   await sendBookingNotification(formatted, session.callerNumber as string);
-
-  // await LeadController.updateLead(session.leadId, {
-  //   status: "completed",
-  //   callTranscription: combined,
-  //   outcome: `📋 New Booking — ${summary.booking?.customer} · ${summary.booking?.service} · ${summary.booking?.branch}`,
-  // }).catch(console.error);
 }

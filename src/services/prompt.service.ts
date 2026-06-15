@@ -1,6 +1,6 @@
 // services/prompt.service.ts
 
-import { getGoldStarSystemPrompt, getSystemPromptForCategory } from "../utils";
+import { getGoldStarSystemPrompt } from "../utils";
 
 export class PromptService {
   static generateForBusiness(business: any, callerNumber: string) {
@@ -9,4 +9,3 @@ export class PromptService {
     });
   }
 }
- 

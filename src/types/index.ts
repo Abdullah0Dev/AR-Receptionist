@@ -16,6 +16,7 @@ export interface GeminiSessionData {
   isAISpeaking: boolean;
   isUserSpeaking: boolean;
   isHangingUp?: boolean;
+  callEndHandled?: boolean;
   pendingHangup?: boolean;
   dispatchReady?: boolean;
   hasAskedFirstQuestion?: boolean;

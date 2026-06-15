@@ -1,20 +1,12 @@
 import { Request, Response } from "express";
-import { TwilioService } from "../services/twilio.service";
-import { AUDIO_FLUSH_INTERVAL, CONFIG } from "../config";
-import { BusinessController } from "./business.controller";
-import { PromptService } from "../services/prompt.service";
-import { GeminiService } from "../services/gemini.service";
-import { SessionManager } from "../models/session.model";
-import twilio from "twilio";
-import { handleGeminiResponse } from "../websocket/message-handlers";
-import { LeadController } from "./lead.controller";
+import { TwilioService } from "../services/twilio.service"; 
+import twilio from "twilio"; 
 
 let ngrokUrl = "";
 
 export const setNgrokUrl = (url: string) => {
   ngrokUrl = url;
-};
-const sessionManager = SessionManager.getInstance();
+}; 
 
 export class CallController {
   static async incomingCall(req: Request, res: Response) {
@@ -33,42 +25,7 @@ export class CallController {
     }
 
     console.log(`📞 Incoming call to ${businessPhone} from ${callerNumber}`);
-
-    // Look up which business owns this number
-    // const business = await BusinessController.getByPhoneNumber(businessPhone);
-
-    // if (!business) {
-    //   console.log(`❌ Business Not found: ${business}`);
-    //   // No business found for this number
-    //   twiml.play("../config/business-not-found.mp3");
-    //   twiml.hangup();
-    //   return res.type("text/xml").send(twiml.toString());
-    // }
-
-    // console.log(`✅ Business found: ${business.businessName}`);
-    // let leadId: string = crypto.randomUUID();
-    // try {
-    //   const lead = await LeadController.createLead({
-    //     phoneNumber: callerNumber,
-    //     businessId: business.id,
-    //     status: "in-progress",
-    //   });
-    //   leadId = lead._id.toString();
-    //   console.log(`✅ Lead created: ${leadId}`);
-    // } catch (error) {
-    //   console.error("Failed to create lead, but continuing call:", error);
-    // }
-    // Generate the dynamic prompt for this business and caller
-    // const systemPrompt = PromptService.generateForBusiness(
-    //   business,
-    //   callerNumber,
-    // );
-
-    // Waiting Msg)
-    // twiml.say("Please hold while I connect you.");
-    // twiml.pause({ length: 1 });
-    // Before the connect block:
-    // twiml.pause({ length: 1 });
+ 
     // We'll pass this via custom parameters
     const connect = twiml.connect();
     const stream = connect.stream({
@@ -79,11 +36,7 @@ export class CallController {
     stream.parameter({
       name: "businessId",
       value: "gold-star-dry-cleaners-1234",
-    });
-    // stream.parameter({
-    //   name: "leadId",
-    //   value: leadId,
-    // });
+    }); 
 
     stream.parameter({ name: "callerNumber", value: callerNumber });
 

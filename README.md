@@ -1,2 +1,3 @@
-1. remove mongodb integration we no longer need it..
-2. check stuff is working after upgrading the API key paid one
+2. see outloud the details at the end when user close the call
+3. make sure you don't billed on the wake up 24/7
+4. able to call multiple numbers at a t ime

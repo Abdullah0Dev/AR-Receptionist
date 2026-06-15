@@ -52,12 +52,12 @@ async function sendConfirmationToCustomer(
     booking.phone,
     CONFIG.TWILIO_PHONE_NUMBER, // send sms from number:
   );
-  await TwilioService.sendWhatsappMessage(
-    `Hi ${booking.customer}, your ${booking.service} booking at our ${booking.branch} branch has been received. We'll call you shortly to confirm collection. – Gold Star Dry Cleaners`,
-    booking.phone,
-    // "+447856239875",
-    // "+447782229655", // send sms from number:
-  );
+  // await TwilioService.sendWhatsappMessage(
+  //   `Hi ${booking.customer}, your ${booking.service} booking at our ${booking.branch} branch has been received. We'll call you shortly to confirm collection. – Gold Star Dry Cleaners`,
+  //   booking.phone,
+  //   // "+447856239875",
+  //   // "+447782229655", // send sms from number:
+  // );
   console.info("Send SMS to: ", booking.phone);
 
   if (booking.email && booking.email.includes("@")) {
@@ -75,6 +75,28 @@ async function sendConfirmationToCustomer(
       }),
     });
   }
+  return {
+    success: true,
+    message: "Sent Confirmation to Customer successfully alhamdullah",
+  };
+}
+async function sendNotificationToOwner(booking: BookingNotificationEmailProps) {
+  // send SMS & Email
+  await TwilioService.sendSMS(
+    `👉 New Lead: ${booking.customer} has requested ${booking.service} at the ${booking.branch} branch. Check your email for full booking details.`,
+    // booking.phone,
+    CONFIG.OWNER_PHONE_NUMBER, // send to owner
+    CONFIG.TWILIO_PHONE_NUMBER,
+  );
+  console.info("Sent SMS to Owner: ", CONFIG.OWNER_PHONE_NUMBER);
+  // send email
+  await resend.emails.send({
+    from: "AutoReception.AI <leads@updates.aireceptions.co.uk>",
+    to: CONFIG.OWNER_EMAIL,
+    // to: "webminds000@gmail.com",
+    subject: `📋 New Booking — ${booking.customer} · ${booking.service} · ${booking.branch}`,
+    react: BookingNotificationEmail({ ...booking }),
+  });
   return {
     success: true,
     message: "Sent Confirmation to Customer successfully alhamdullah",
@@ -122,14 +144,8 @@ export async function sendBookingNotification(
     if (notQualifiedLead) {
       return { success: false, booking };
     }
-    // send customer confirmation SMS/Email and owner lead
-    await resend.emails.send({
-      from: "AutoReception.AI <leads@updates.aireceptions.co.uk>",
-      to: CONFIG.OWNER_EMAIL,
-      // to: "webminds000@gmail.com",
-      subject: `📋 New Booking — ${booking.customer} · ${booking.service} · ${booking.branch}`,
-      react: BookingNotificationEmail({ ...booking }),
-    });
+    // send owner SMS/Email  Notification
+    sendNotificationToOwner({ ...booking });
     // send customer confirmation email
     sendConfirmationToCustomer({ ...booking });
 
