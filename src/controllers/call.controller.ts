@@ -35,34 +35,34 @@ export class CallController {
     console.log(`📞 Incoming call to ${businessPhone} from ${callerNumber}`);
 
     // Look up which business owns this number
-    const business = await BusinessController.getByPhoneNumber(businessPhone);
+    // const business = await BusinessController.getByPhoneNumber(businessPhone);
 
-    if (!business) {
-      console.log(`❌ Business Not found: ${business}`);
-      // No business found for this number
-      twiml.play("../config/business-not-found.mp3");
-      twiml.hangup();
-      return res.type("text/xml").send(twiml.toString());
-    }
+    // if (!business) {
+    //   console.log(`❌ Business Not found: ${business}`);
+    //   // No business found for this number
+    //   twiml.play("../config/business-not-found.mp3");
+    //   twiml.hangup();
+    //   return res.type("text/xml").send(twiml.toString());
+    // }
 
-    console.log(`✅ Business found: ${business.businessName}`);
-    let leadId: string | null = null;
-    try {
-      const lead = await LeadController.createLead({
-        phoneNumber: callerNumber,
-        businessId: business.id,
-        status: "in-progress",
-      });
-      leadId = lead._id.toString();
-      console.log(`✅ Lead created: ${leadId}`);
-    } catch (error) {
-      console.error("Failed to create lead, but continuing call:", error);
-    }
+    // console.log(`✅ Business found: ${business.businessName}`);
+    // let leadId: string = crypto.randomUUID();
+    // try {
+    //   const lead = await LeadController.createLead({
+    //     phoneNumber: callerNumber,
+    //     businessId: business.id,
+    //     status: "in-progress",
+    //   });
+    //   leadId = lead._id.toString();
+    //   console.log(`✅ Lead created: ${leadId}`);
+    // } catch (error) {
+    //   console.error("Failed to create lead, but continuing call:", error);
+    // }
     // Generate the dynamic prompt for this business and caller
-    const systemPrompt = PromptService.generateForBusiness(
-      business,
-      callerNumber,
-    );
+    // const systemPrompt = PromptService.generateForBusiness(
+    //   business,
+    //   callerNumber,
+    // );
 
     // Waiting Msg)
     // twiml.say("Please hold while I connect you.");
@@ -78,12 +78,12 @@ export class CallController {
     // Pass business context as custom parameters
     stream.parameter({
       name: "businessId",
-      value: business.id,
+      value: "gold-star-dry-cleaners-1234",
     });
-    stream.parameter({
-      name: "leadId",
-      value: leadId,
-    });
+    // stream.parameter({
+    //   name: "leadId",
+    //   value: leadId,
+    // });
 
     stream.parameter({ name: "callerNumber", value: callerNumber });
 

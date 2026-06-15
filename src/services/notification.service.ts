@@ -125,7 +125,7 @@ export async function sendBookingNotification(
     // send customer confirmation SMS/Email and owner lead
     await resend.emails.send({
       from: "AutoReception.AI <leads@updates.aireceptions.co.uk>",
-      to: "rohanautoreceptionai@gmail.com",
+      to: CONFIG.OWNER_EMAIL,
       // to: "webminds000@gmail.com",
       subject: `📋 New Booking — ${booking.customer} · ${booking.service} · ${booking.branch}`,
       react: BookingNotificationEmail({ ...booking }),

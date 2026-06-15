@@ -7,7 +7,7 @@ import { PooledSession } from "../services/gemini.service";
 export interface GeminiSessionData {
   geminiSession: any;
   streamSid: string;
-  leadId: string;
+  callerNumber: string;
   audioProcessor: StreamAudioProcessor;
   businessId: string;
   callSid: string;
@@ -19,7 +19,7 @@ export interface GeminiSessionData {
   pendingHangup?: boolean;
   dispatchReady?: boolean;
   hasAskedFirstQuestion?: boolean;
-  silenceTimer?: NodeJS.Timeout;
+  silenceTimer?: NodeJS.Timeout | null;
   hangupTimer?: NodeJS.Timeout;
   transcripts: TranscriptType[];
   callbacksRef: PooledSession["callbacks"]; // 👈 add this

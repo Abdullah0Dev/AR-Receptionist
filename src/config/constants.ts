@@ -19,6 +19,8 @@ export const CONFIG = {
   FONOSTER_ENDPOINT:
     process.env.FONOSTER_ENDPOINT || "https://api.fonoster.com",
   GEMINI_API_KEY: process.env.GEMINI_API_KEY!,
+  OWNER_EMAIL: process.env.OWNER_EMAIL ?? "rohanautoreceptionai@gmail.com",
+  
   NGROK_AUTHTOKEN: process.env.NGROK_AUTHTOKEN!,
   BUSINESS_PHONE: process.env.TWILIO_PHONE_NUMBER!,
 } as const;

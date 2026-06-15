@@ -3,11 +3,11 @@ import { TwilioService } from "./services/twilio.service";
 import { CONFIG } from "./config";
 import { GoogleGenAI, Modality} from "@google/genai";
 
-export const geminiClient = new GoogleGenAI({ apiKey: CONFIG.GEMINI_API_KEY });
+export const geminiClient = new GoogleGenAI({ apiKey: CONFIG.GEMINI_API_KEY, vertexai: true });
 
 async function run() {
   const response = await geminiClient.models.generateContent({
-    model: "gemini-3-flash-preview",
+    model: "gemini-2.5-flash",
     contents: `say hi`,
   });
   // console.log("api key: ", CONFIG.GEMINI_API_KEY);

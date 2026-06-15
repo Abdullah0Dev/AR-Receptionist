@@ -24,20 +24,18 @@ export async function handleTwilioMessage(
     case "start": {
       if (!msg.start) break;
       const { streamSid, callSid } = msg.start;
-      const { businessId, callerNumber, leadId } =
-        msg.start.customParameters || {};
+      const { businessId, callerNumber } = msg.start.customParameters || {};
 
-      LeadController.updateLead(leadId, { status: "answered" }).catch(
-        console.error,
-      );
+      // LeadController.updateLead(leadId, { status: "answered" }).catch(
+      //   console.error,
+      // );
 
       await createGeminiSession(
         streamSid,
         callSid,
         twilioWs,
-        businessId,
-        callerNumber,
-        leadId,
+        businessId as string,
+        callerNumber as string,
       );
 
       break;
@@ -128,7 +126,6 @@ export async function createGeminiSession(
   twilioWs: WebSocket,
   businessId: string,
   callerNumber: string, // ← pass callerNumber instead of systemPrompt
-  leadId: string,
 ) {
   // ✅ Near-instant — no network round-trip
   const pooled = await GeminiService.popSession();
@@ -149,7 +146,7 @@ export async function createGeminiSession(
     streamSid,
     callSid,
     businessId,
-    leadId,
+    callerNumber,
     ws: twilioWs,
     audioBuffer: new AudioBuffer(),
     isAISpeaking: false,
@@ -257,22 +254,15 @@ export async function handleGeminiResponse(streamSid: string, message: any) {
 
 // Runs after call ends (Twilio stop event)
 async function handleCallEnd(session: any) {
-  if (!session.leadId) return;
-
   const { combined, formatted } = processTranscriptsFormatting(
     session.transcripts,
   );
-  const leadDetails = await LeadController.getLead(session.leadId);
-  console.log("leadDetails: ", leadDetails);
+  // callerNumber lives on session — no DB fetch needed
+  await sendBookingNotification(formatted, session.callerNumber as string);
 
-  const summary = await sendBookingNotification(
-    formatted,
-    leadDetails.phoneNumber as string,
-  );
-
-  await LeadController.updateLead(session.leadId, {
-    status: "completed",
-    callTranscription: combined,
-    outcome: `📋 New Booking — ${summary.booking?.customer} · ${summary.booking?.service} · ${summary.booking?.branch}`,
-  }).catch(console.error);
+  // await LeadController.updateLead(session.leadId, {
+  //   status: "completed",
+  //   callTranscription: combined,
+  //   outcome: `📋 New Booking — ${summary.booking?.customer} · ${summary.booking?.service} · ${summary.booking?.branch}`,
+  // }).catch(console.error);
 }

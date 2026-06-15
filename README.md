@@ -1,15 +1,2 @@
-1. work on the lead
-   - customize the AI to extract all the needed information from the convo
-   - if valid data, we can send it via email/google sheet
-   - if not, just ignore it inshallah
-
-
-
-✅ Confirmation SMS to customer
-✅ Confirmation email to customer
-✅ Instant lead notification to business owner
-✅ Improve audio quality
-✅ Reduce start delay
-
-
- 
+1. remove mongodb integration we no longer need it..
+2. check stuff is working after upgrading the API key paid one
